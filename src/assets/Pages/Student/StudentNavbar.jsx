@@ -70,9 +70,7 @@ const StudentNavbar = () => {
   // const notifications = () => {};
   async function logout() {
     try {
-      const status = await api.post(`/students/logout/${data._id}`, {
-        token: data.token,
-      });
+      const status = await api.post(`/students/logout/${data._id}`);
       if (status.data.message === "Logged out Successfully!") {
         localStorage.clear();
         navigate("/studentLogin");

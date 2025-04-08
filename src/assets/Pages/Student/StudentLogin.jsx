@@ -3,8 +3,11 @@ import Login from "../../Components/Login";
 import api from "../../api";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
+import { Auth } from "aws-amplify";
 import "react-toastify/dist/ReactToastify.css";
 const StudentLogin = () => {
+
+
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     phoneNumber: "",
@@ -15,31 +18,30 @@ const StudentLogin = () => {
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(prev=>!prev)
+    setLoading(true);
     try {
-      const response = await api.post(
-        "/auth/students/login",
-        formData
-      );
-      const token = response.headers.get("Authorization");
-      if(token)
-      {
-        localStorage.setItem("authToken", token);
-      }
-      else{
-        throw new Error("Token not found");
-      }
-      //localStorage.setItem("authToken", response.headers.get('Authorization'));
-      localStorage.setItem("student", JSON.stringify(response.data));
+      const authInfo = await Auth.signIn(formData.phoneNumber, formData.password);
+      const token = authInfo.signInUserSession.idToken.jwtToken;
+  
+      // Send token to backend to be stored in secure cookie
+      await api.post("/auth/students/storeToken", { token }, { withCredentials: true });
+  
+      // Fetch user info using the cookie (token now stored server-side)
+      const user = await api.post("/auth/students/me", {}, { withCredentials: true });
+  
+      localStorage.setItem("user", JSON.stringify(user.data));
       navigate("/student");
-      setLoading(prev=>!prev)
     } catch (error) {
-      notify("Invalid Username Or Password");
-      setLoading((prev) => !prev)
+      console.error(error);
+      notify("Invalid Username or Password or Network error");
+    } finally {
+      setLoading(false);
     }
   };
+  
 
   return (
     <>

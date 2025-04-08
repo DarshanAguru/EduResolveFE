@@ -2,6 +2,7 @@ import { useState } from "react";
 import Login from "../../Components/Login";
 import { useNavigate } from "react-router-dom";
 import api from '../../api';
+import { Auth } from "aws-amplify";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 const MentorLogin = () => {
@@ -11,24 +12,33 @@ const MentorLogin = () => {
     password: "",
   });
   const notify = (message) => toast.error(message);
+  const [loading,setLoading]=useState(false)
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   };
-  const handleSubmit = async(e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      const response = await api.post(
-        "/mentors/login",
-        formData
-      );
-      console.log("From server", response.data);
-      localStorage.setItem("mentor", JSON.stringify(response.data));
+      const authInfo = await Auth.signIn(formData.phoneNumber, formData.password);
+      const token = authInfo.signInUserSession.idToken.jwtToken;
+  
+      // Send token to backend to be stored in secure cookie
+      await api.post("/auth/mentors/storeToken", { token }, { withCredentials: true });
+  
+      // Fetch user info using the cookie (token now stored server-side)
+      const user = await api.post("/auth/mentors/me", {}, { withCredentials: true });
+  
+      localStorage.setItem("user", JSON.stringify(user.data));
       navigate("/mentor");
     } catch (error) {
-      notify("Invalid Username Or Password");
-      console.log("no user found", error);
+      console.error(error);
+      notify("Invalid Username or Password or Network error");
+    } finally {
+      setLoading(false);
     }
   };
+  
 
   return (
     <>
@@ -49,6 +59,8 @@ const MentorLogin = () => {
       data={formData}
       onChange={handleChange}
       onSubmit={handleSubmit}
+      loading={loading}
+      setLoading={setLoading}
     />
     </>
   );

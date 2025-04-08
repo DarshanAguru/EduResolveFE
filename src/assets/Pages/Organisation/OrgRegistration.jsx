@@ -2,6 +2,7 @@
 import { useState } from "react";
 import FormInput from "../../Components/FormInput";
 import api from "../../api";
+import { Auth } from "aws-amplify";
 import { useNavigate } from "react-router-dom";
 const formFields = [
   { label: "Name", id: "name", placeholder: "Enter name", required: true },
@@ -13,13 +14,11 @@ const formFields = [
     type: "email",
   },
   {
-    label: "Age",
-    id: "age",
-    placeholder: "Enter Age",
+    label: "Date of Birth",
+    id: "birthdate",
+    placeholder: "Enter Date of Birth",
     required: true,
-    type: "number",
-    min: 18,
-    max: 100,
+    type: "date",
   },
   {
     label: "Institution",
@@ -67,7 +66,7 @@ const OrgRegistration = () => {
     emailId: "",
     designation: "",
     institution: "",
-    age: "",
+    birthdate: "",
     gender: "",
     password: "",
   });
@@ -83,9 +82,21 @@ const OrgRegistration = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+    const { userSub } = await Auth.signUp({
+            username: formData.phoneNumber,
+            password: formData.password,
+            attributes: {
+              name: formData.name,
+              email: formData.emailId,
+              gender: formData.gender,
+              phone_number: formData.phoneNumber,
+              birthdate: formData.birthdate,
+            }
+          }) 
+
       await api.put(
-        "/localadmins/register",
-        formData
+        "/auth/localAdmins/register",
+        {...formData, password: undefined, cognitoSub : userSub},
       );
       navigate("/organisationLogin")
     } catch (error) {

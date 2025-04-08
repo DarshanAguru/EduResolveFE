@@ -2,6 +2,7 @@ import  { useState } from "react";
 import Login from "../../Components/Login";
 import { useNavigate } from "react-router-dom";
 import api from '../../api';
+import { Auth } from "aws-amplify";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 const TeacherLogin = () => {
@@ -10,33 +11,35 @@ const TeacherLogin = () => {
     phoneNumber: "",
     password: "",
   });
+  const [loading,setLoading]=useState(false)
   const notify = (message) => toast.error(message);
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.id]: e.target.value }));
   };
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      const response = await api.post(
-        "/teachers/login",
-        formData
-      );
-      localStorage.setItem("teacher", JSON.stringify(response.data));
+      const authInfo = await Auth.signIn(formData.phoneNumber, formData.password);
+      const token = authInfo.signInUserSession.idToken.jwtToken;
+  
+      // Send token to backend to be stored in secure cookie
+      await api.post("/auth/teachers/storeToken", { token }, { withCredentials: true });
+  
+      // Fetch user info using the cookie (token now stored server-side)
+      const user = await api.post("/auth/teachers/me", {}, { withCredentials: true });
+  
+      localStorage.setItem("user", JSON.stringify(user.data));
       navigate("/teacher");
     } catch (error) {
-      if(error.response.data.message === 'Pending')
-      {
-        notify("Pending: Please wait for Local Admin to approve")
-      }
-      else if(error.response.data.message==='Rejected')
-      {
-        notify("Rejected: Your request has been rejected")
-      }
-      else{
-      notify("Invalid Username Or Password");
-      }
+      console.error(error);
+      notify("Invalid Username or Password or Network error");
+    } finally {
+      setLoading(false);
     }
   };
+  
 
   return (
     <>
@@ -57,6 +60,8 @@ const TeacherLogin = () => {
         data={formData}
         onChange={handleChange}
         onSubmit={handleSubmit}
+        loading={loading}
+        setLoading={setLoading}
       />
     </>
   );

@@ -2,6 +2,7 @@ import { useState } from "react";
 import FormInput from "../../Components/FormInput";
 import FormCheckboxGroup from "../../Components/FormCheckBoxGroup";
 import api from "../../api";
+import { Auth } from "aws-amplify";
 import { useNavigate } from "react-router-dom";
 
 const formFields = [
@@ -14,11 +15,11 @@ const formFields = [
     type: "email",
   },
   {
-    label: "Age",
-    id: "age",
-    placeholder: "Enter Age",
+    label: "Date of Birth",
+    id: "birthdate",
+    placeholder: "Enter Date of Birth",
     required: true,
-    type: "number",
+    type: "date",
   },
   {
     label: "Gender",
@@ -78,7 +79,7 @@ const MentorRegistration = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    age: "",
+    birthdate: "",
     gender: "",
     qualification: "",
     subjectExpertise: [],
@@ -124,13 +125,32 @@ const MentorRegistration = () => {
       alert("Please enter a valid google drive link");
       return;
     }
-    console.log(formData);
+    
+
+    if (!formData.birthdate) {
+      alert("Please enter your date of birth");
+      return;
+    }
+
+    // console.log(formData);
     try {
-      const res = await api.put(
-        "/mentors/register",
-        formData
+
+      const { userSub } = await Auth.signUp({
+              username: formData.phoneNumber,
+              password: formData.password,
+              attributes: {
+                name: formData.name,
+                email: formData.emailId,
+                gender: formData.gender,
+                phone_number: formData.phoneNumber,
+                birthdate: formData.birthdate,
+              }
+            }) 
+      await api.put(
+        "/auth/mentors/register",
+        { ...formData, password: undefined, cognitoSub: userSub },
       );
-      console.log("Form Data submitted successfully", res.data);
+      // console.log("Form Data submitted successfully", res.data);
       navigate("/mentorLogin");
     } catch (error) {
       console.log("Error submitting registration form", error);

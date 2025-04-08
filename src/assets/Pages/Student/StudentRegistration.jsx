@@ -3,7 +3,7 @@ import Button from "../../Components/Button";
 import FormInput from "../../Components/FormInput";
 import { useNavigate } from "react-router-dom";
 import api from "../../api";
-import { Auth } from "aws-amplify";
+import { signUp } from "@aws-amplify/auth";
 const formFields = [
   { label: "Name", id: "name", placeholder: "Enter name", required: true },
   {
@@ -87,7 +87,7 @@ const StudentRegistration = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const { userSub } = await Auth.signUp({
+      const { userSub } = await signUp({
         username: formData.phoneNumber,
         password: formData.password,
         attributes: {

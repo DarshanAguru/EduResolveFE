@@ -2,7 +2,7 @@ import  { useState } from "react";
 import Login from "../../Components/Login";
 import api from '../../api';
 import "../../../index.css";
-import { Auth } from "aws-amplify";
+import { signIn } from "@aws-amplify/auth";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -21,7 +21,7 @@ const AdminLogin = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const authInfo = await Auth.signIn(formData.phoneNumber, formData.password);
+      const authInfo = await signIn({username:formData.phoneNumber, password:formData.password});
       const token = authInfo.signInUserSession.idToken.jwtToken;
   
       // Send token to backend to be stored in secure cookie

@@ -1,10 +1,14 @@
-import {Amplify} from 'aws-amplify';
+import { Amplify } from 'aws-amplify';
 
 Amplify.configure({
   Auth: {
-    region: `${import.meta.env.VITE_API_AWS_REGION}`,
-    userPoolId: `${import.meta.env.VITE_API_AWS_USER_POOL_ID}`,
-    userPoolWebClientId: `${import.meta.env.VITE_API_AWS_USER_POOL_WEB_CLIENT_ID}`,
-    authenticationFlowType: `${import.meta.env.VITE_API_AWS_AUTH_FLOW_TYPE}`,
-  }
+    Cognito: {
+       userPoolClientId: import.meta.env.VITE_API_AWS_USER_POOL_CLIENT_ID, 
+       userPoolId: import.meta.env.VITE_API_AWS_USER_POOL_ID,
+       identityPoolId: import.meta.env.VITE_API_AWS_IDENTITY_POOL_ID,
+       loginWith : {
+        username: true,
+       }
+    },
+    }
 });

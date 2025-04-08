@@ -2,7 +2,7 @@ import { useState } from "react";
 import FormInput from "../../Components/FormInput";
 import FormCheckboxGroup from "../../Components/FormCheckBoxGroup";
 import api from "../../api";
-import { Auth } from "aws-amplify";
+import { signUp } from "@aws-amplify/auth";
 import { useNavigate } from "react-router-dom";
 
 const formFields = [
@@ -135,7 +135,7 @@ const MentorRegistration = () => {
     // console.log(formData);
     try {
 
-      const { userSub } = await Auth.signUp({
+      const { userSub } = await signUp({
               username: formData.phoneNumber,
               password: formData.password,
               attributes: {

@@ -1,8 +1,10 @@
+/* eslint-disable no-unused-vars */
 import { useState } from "react";
 import Button from "./Button";
 import FormInput from "./FormInput";
 
 import ForgotPassword from "./ForgotPassword";
+import PropTypes from "prop-types";
 
 const formFields = [
   {
@@ -108,5 +110,16 @@ const Login = ({
     </>
   );
 };
+Login.propTypes = {
+  user: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+  data: PropTypes.object.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  isAdmin: PropTypes.bool,
+  loading: PropTypes.bool.isRequired,
+  setLoading: PropTypes.func.isRequired,
+};
 
 export default Login;
+
+
